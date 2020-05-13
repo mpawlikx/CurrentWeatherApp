@@ -1,4 +1,4 @@
-package com.example.currentweather
+package com.example.currentweather.models
 
 data class Sys(
     val country: String,

@@ -1,4 +1,6 @@
-package com.example.currentweather
+package com.example.currentweather.models
+
+import com.example.currentweather.models.*
 
 data class CurrentWeatherResponse(
     val base: String,
@@ -12,6 +14,6 @@ data class CurrentWeatherResponse(
     val sys: Sys,
     val timezone: Int,
     val visibility: Int,
-    val weather: List<Weather>,
-    val wind: Wind
+    val weather: List<Weather>
+   // val wind: Wind
 )
