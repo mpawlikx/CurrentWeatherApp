@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
-        android:text="time"
+        android:text="data"
         android:textColor="@color/colorWtite"
         android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/city_name_edit_text"
@@ -44,12 +44,13 @@
         android:id="@+id/temperature_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
+        android:layout_marginStart="50dp"
         android:text="20"
         android:textColor="@color/colorWtite"
-        android:textSize="100sp"
+        android:textSize="200sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -68,12 +69,13 @@
         android:id="@+id/pressure_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="120dp"
         android:text="1019"
         android:textColor="@color/colorWtite"
         android:textSize="28sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/temperature_text" />
+        app:layout_constraintTop_toBottomOf="@+id/temperature_symbol" />
 
     <TextView
         android:id="@+id/humidity_text"

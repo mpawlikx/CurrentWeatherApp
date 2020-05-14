@@ -1,69 +1,73 @@
 package com.example.currentweather
 
-import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.currentweather.models.WeatherResponseModel
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
     private var currentWeather: WeatherResponseModel? = null
+    private var cityName: String? = null
 
-    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val sharedPref = getSharedPreferences("LOCATION", Context.MODE_PRIVATE)
-
-        city_name_edit_text.setText(sharedPref.getString("CITY_NAME", ""))
-        temperature_text.text = sharedPref.getString("TEMPERATURE", "temp")
-        pressure_text.text = sharedPref.getString("PRESSURE", "pres")
-        humidity_text.text = sharedPref.getString("HUMIDITY", "hum")
-        wind_text.text = sharedPref.getString("WIND", "wind")
-
-        //todo usunąc powtórzenia, dodać datę i naprawić bo wywala
+        val sharedPref = getSharedPreferences("WEATHER_INFO", Context.MODE_PRIVATE)
+        getSavedWeather(sharedPref)
+        updateViews()
 
         load_weather.setOnClickListener {
-            val city_name = city_name_edit_text.text.toString().trim()
-            val editor = sharedPref.edit()
+            cityName = city_name_edit_text.text.toString().trim()
 
-            editor.putString("CITY_NAME", city_name)
+            GlobalScope.launch(Dispatchers.Main) {
+                fetchAndShowResults()
+            }
+        }
+    }
 
+    suspend fun fetchWeather() {
+        return GlobalScope.async(Dispatchers.IO) {
+            val weatherJson = ApiConnectHelper().getJSONString(cityName!!)
+
+            currentWeather = Gson().fromJson(weatherJson, WeatherResponseModel::class.java)
+
+            val editor = getSharedPreferences("WEATHER_INFO", Context.MODE_PRIVATE).edit()
+            editor.putString("WEATHER_JSON", weatherJson)
+            editor.putString("CITY_NAME", cityName)
             editor.apply()
+        }.await()
+    }
 
-            val job = CoroutineScope(Dispatchers.IO).launch {
-                val weatherJson = ApiConnectHelper().getJSONString(city_name)
-                Log.d("HTTP_JSON", weatherJson)
-                currentWeather = Gson().fromJson(weatherJson, WeatherResponseModel::class.java)
+    private suspend fun fetchAndShowResults() {
+        fetchWeather() // fetch on IO thread
+        updateViews() // back on UI thread
+    }
 
-                val temperature = currentWeather!!.main.temp.toString().trim()
-                val pressure = currentWeather!!.main.pressure.toString().trim()
-                val humidity = currentWeather!!.main.humidity.toString().trim()
-                val wind = currentWeather!!.wind.speed.toString().trim()
+    private fun updateViews() {
+        if (currentWeather != null) {
+            temperature_text.text = currentWeather!!.main.temp.toInt().toString()
+            pressure_text.text = currentWeather!!.main.pressure.toString()
+            humidity_text.text = currentWeather!!.main.humidity.toString()
+            wind_text.text = currentWeather!!.wind.speed.toInt().toString()
+        }
+        if (cityName != null) {
+            city_name_edit_text.setText(cityName)
+        }
+    }
 
-                editor.putString("TEMPERATURE", temperature)
-                editor.putString("PRESSURE", pressure)
-                editor.putString("HUMIDITY", humidity)
-                editor.putString("WIND", wind)
-                editor.apply()
-
-                temperature_text.text = sharedPref.getString("TEMPERATURE", "temp")
-                pressure_text.text = sharedPref.getString("PRESSURE", "pres")
-                humidity_text.text = sharedPref.getString("HUMIDITY", "hum")
-                wind_text.text = sharedPref.getString("WIND", "wind")
-
-            }
-            job.start()
-            if (job.isCompleted) {
-                job.cancel()
-            }
+    private fun getSavedWeather(sharedPref: SharedPreferences) {
+        if (sharedPref.getString("WEATHER_JSON", null) != null) {
+            currentWeather = Gson().fromJson(
+                sharedPref.getString("WEATHER_JSON", null),
+                WeatherResponseModel::class.java
+            )
+            cityName = sharedPref.getString("CITY_NAME", null)
         }
     }
 
