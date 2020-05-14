@@ -50,7 +50,7 @@ class ApiConnectHelper {
 
     }
 
-    fun getUrlString(urlSpec: String): String {
+    private fun getUrlString(urlSpec: String): String {
         return String(getUrlBytes(urlSpec))
     }
 
@@ -64,9 +64,7 @@ class ApiConnectHelper {
                 .buildUpon()
                 .appendQueryParameter("q", city)
                 .appendQueryParameter("appid", KEY_API)
-                //  .appendQueryParameter("format","json")
-                // .appendQueryParameter("nojsoncallback","1")
-                //  .appendQueryParameter("extras","url_s")
+                .appendQueryParameter("units", "metric")
                 .build().toString()
 
             jsonString = getUrlString(url)
